@@ -739,6 +739,8 @@ class Layer_Manager {
     return "<a href='javascript:void(0);' onclick=\"filter_manager.show_details('"+resource["id"]+"')\" >"+resource["dct_title_s"]+"</a>"
   }
   layer_click(e,_resource_id){
+        console_log("no Layer click",e)
+        return
         map_manager.layer_clicked=true
         map_manager.selected_layer_id=_resource_id
 
@@ -976,7 +978,7 @@ class Layer_Manager {
               try{
 
                  var geo = $this.create_geo_avatar(item.feature,_resource_id,layer_obj, false, false)
-                 geo.bindTooltip(item.feature.features[0].properties["instructor name"])
+                 geo.bindTooltip(item.feature.features[0].properties["Instructor"])
 
                  geo.on('click', function(e) {
                    L.DomEvent.stopPropagation(e);
@@ -1015,7 +1017,7 @@ class Layer_Manager {
     var coords = feature.features?.[0]?.geometry?.coordinates;
     var latlng = L.latLng(coords[1], coords[0]);
 
-    var imageUrl = "images/profile_pic/"+feature.features?.[0].properties["instructor name"]+".png"
+    var imageUrl = "images/profile_pic/"+feature.features?.[0].properties["Instructor"]+".png"
         // ? feature.features?.[0].properties.image_url 
         // : 'images/profile_pic/Not Avaliable.png'; // Fallback placeholder image
 

@@ -135,7 +135,7 @@ function after_filters(){
     }
     setTimeout(function(){
           section_manager.slide_position("results")
-           zoom_event_handler();
+           map_manager.zoom_event_handler();
     },1000)
   
 

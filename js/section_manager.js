@@ -257,10 +257,7 @@ class Section_Manager {
 
                     all_data[i].feature.features[0].geometry.coordinates= all_data[i]["lat,lng"].split(",").map(Number).reverse();
                     // add a profile picture
-                    all_data[i].feature.features[0].properties["instructor name"]=all_data[i]["instructor name"]
-                    all_data[i].feature.features[0].properties.image_url="images/profile_pic/" + all_data[i]["instructor_name"]+".png"
-
-                    
+ 
                     // keep the feature and child id consistent
                     all_data[i].feature.features[0].id=all_data[i]._id;
 

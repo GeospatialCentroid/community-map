@@ -587,24 +587,26 @@ class Filter_Manager {
 
             }
     }
-    click_item(_id,item_id){
-          var data = this.section_manager.get_match('section_id_'+_id)
-            for (var i=0;i<data.length;i++){
-                if(item_id==data[i]._id){
-                    if(data[i]?.feature){
-//                         setTimeout(function(){
-//
-//                         }, 1500);
-                            map_manager.map_click_event(L.geoJSON(data[i].feature).getBounds().getCenter())
-                            map_manager.show_popup_details(data[i].feature.features)
-                    }
+    click_item(_id, item_id) {
+    var data = this.section_manager.get_match('section_id_' + _id);
+    for (var i = 0; i < data.length; i++) {
+        if (item_id == data[i]._id) {
+            if (data[i]?.feature) {
+                // 1. Calculate the center point
+                var targetCenter = L.geoJSON(data[i].feature).getBounds().getCenter();
+                
+                // 2. Explicitly tell the map to fly to this point. 
+                // (Assuming map_manager.map is your Leaflet map instance)
+                map_manager.map.flyTo(targetCenter, 16, { animate: true, duration: 1 });
 
-                    break
-                }
-
+                // 3. Fire your existing events
+                map_manager.map_click_event(targetCenter);
+                map_manager.show_popup_details(data[i].feature.features);
             }
+            break;
+        }
     }
-
+}
 
 
     //--
@@ -635,7 +637,7 @@ class Filter_Manager {
              showing="checked";//we're showing them all for now
              html += "<li class='list-group-item d-flex justify-content-between list-group-item-action'>"
              if(sorted_data[i]?.feature){
-                 html+='<a href="#"  onclick="filter_manager.zoom_item('+parent_id+','+sorted_data[i]._id+');filter_manager.click_item('+parent_id+','+sorted_data[i]._id+');javascript:map_manager.scroll_to_map()">'+sorted_data[i][title_col]+'</a>'
+                 html+='<a href="#"  onclick="filter_manager.click_item('+parent_id+','+sorted_data[i]._id+');">'+sorted_data[i][title_col]+'</a>'
                  html+='<span><div class="form-check"  onclick="filter_manager.show_items('+parent_id+',['+sorted_data[i]._id+'])"><input class="form-check-input" type="checkbox" '+showing+' value="" id="section_'+parent_id+'_'+sorted_data[i]._id+'" ></div>'
              }else{
                   html+=sorted_data[i][title_col]
