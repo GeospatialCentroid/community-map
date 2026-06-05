@@ -50,18 +50,18 @@ class Map_Manager {
     // create a reference to this for use during interaction
     var $this=this
 
-    this.map.on('click', function(e) {
-          if ($this.mousedown_time<200){
-            if ($this.layer_clicked==false){
-                 $this.click_lat_lng = e.latlng
-                 if(typeof(e.containerPoint)!="undefined"){
-                  $this.click_x_y=e.containerPoint
-                 }
-                $this.map_click_event(e.latlng)
-            }
-          }
-          $this.layer_clicked=false
-    });
+    // this.map.on('click', function(e) {
+    //       if ($this.mousedown_time<200){
+    //         if ($this.layer_clicked==false){
+    //              $this.click_lat_lng = e.latlng
+    //              if(typeof(e.containerPoint)!="undefined"){
+    //               $this.click_x_y=e.containerPoint
+    //              }
+    //             $this.map_click_event(e.latlng)
+    //         }
+    //       }
+    //       $this.layer_clicked=false
+    // });
 
     // keep track of time mouse depressed to control click
      this.map.on('mousedown', function () {
@@ -124,6 +124,9 @@ class Map_Manager {
       var b = drawnItems.getBounds()
      $this.show_copy_link(b.getWest(),b.getSouth(),b.getEast(),b.getNorth())
 
+    });
+  this.map.on('zoomend', function() {
+     map_manager.zoom_event_handler()
     });
   }
 
@@ -799,7 +802,144 @@ class Map_Manager {
 
 
     }
+    ////--------------- SPIDER LEG CLUSTERING ON ZOOM OUT --------------
+    zoom_event_handler(){
+        var currentZoom = map_manager.map.getZoom();
+    
+        var allActiveMarkers = [];
+        Object.keys(section_manager.json_data).forEach(function(sectionId) {
+            var section = section_manager.json_data[sectionId];
+            
+            if (!section.spider_legs) {
+                section.spider_legs = L.layerGroup().addTo(map_manager.map);
+            }
+            section.spider_legs.clearLayers(); 
 
+            if (section.geojson_markers && section.geojson_markers.length > 0) {
+                section.geojson_markers.forEach(function(marker) {
+                    marker.parentSectionId = sectionId;
+                    allActiveMarkers.push(marker);
+                });
+            }
+        });
+
+        if (allActiveMarkers.length === 0) return;
+
+        function setLayerLatLng(layer, latlng) {
+            if (typeof layer.setLatLng === 'function') {
+                layer.setLatLng(latlng);
+            } else if (typeof layer.eachLayer === 'function') {
+                layer.eachLayer(function(subLayer) {
+                    if (typeof subLayer.setLatLng === 'function') subLayer.setLatLng(latlng);
+                });
+            }
+        }
+
+        function getLayerLatLng(layer) {
+            if (typeof layer.getLatLng === 'function') return layer.getLatLng();
+            var fallback = null;
+            if (typeof layer.eachLayer === 'function') {
+                layer.eachLayer(function(subLayer) {
+                    if (typeof subLayer.getLatLng === 'function') fallback = subLayer.getLatLng();
+                });
+            }
+            return fallback;
+        }
+
+        if (currentZoom >= 14) {
+            var globalVisualGroups = []; 
+
+            // Adjust proximity threshold depending on zoom depth
+            var proximityThreshold = currentZoom === 14 ? 15 : (currentZoom === 15 ? 25 : 40); 
+
+            allActiveMarkers.forEach(function(geoLayer) {
+                var latlng = getLayerLatLng(geoLayer);
+                if (!latlng) return;
+
+                if (!geoLayer.trueLatLng) {
+                    geoLayer.trueLatLng = latlng;
+                }
+
+                var currentPixelPoint = map_manager.map.latLngToLayerPoint(geoLayer.trueLatLng);
+                var matchedGroup = null;
+
+                for (var i = 0; i < globalVisualGroups.length; i++) {
+                    var distance = currentPixelPoint.distanceTo(globalVisualGroups[i].screenCenter);
+                    if (distance < proximityThreshold) {
+                        matchedGroup = globalVisualGroups[i];
+                        break;
+                    }
+                }
+
+                if (matchedGroup) {
+                    matchedGroup.layers.push(geoLayer);
+                } else {
+                    globalVisualGroups.push({
+                        screenCenter: currentPixelPoint,
+                        layers: [geoLayer]
+                    });
+                }
+            });
+
+            globalVisualGroups.forEach(function(group) {
+                if (group.layers.length <= 1) {
+                    setLayerLatLng(group.layers[0], group.layers[0].trueLatLng);
+                    return;
+                }
+
+                // Scale down the ring sizes if zoomed out to keep them tight
+                var scale = 1.0;
+                if (currentZoom === 14) scale = 0.55;
+                else if (currentZoom === 15) scale = 0.75;
+
+                group.layers.forEach(function(geoLayer, index) {
+                    var radius, angle;
+
+                    // --- CONCENTRIC RING PACKING GEOMETRY ---
+                    if (index < 5) {
+                        // Ring 1: Up to 5 markers close to center
+                        radius = 42 * scale;
+                        angle = index * (2 * Math.PI / 5);
+                    } else if (index < 12) {
+                        // Ring 2: Next 7 markers positioned further out (interleaved angle)
+                        radius = 76 * scale;
+                        angle = (index - 5) * (2 * Math.PI / 7) + 0.4; 
+                    } else if (index < 22) {
+                        // Ring 3: Heavy duty overflow handling for massive clusters
+                        radius = 110 * scale;
+                        angle = (index - 12) * (2 * Math.PI / 10) + 0.2;
+                    } else {
+                        // Fallback absolute protection spiral if a cluster is somehow > 22
+                        radius = (110 + (index - 21) * 12) * scale;
+                        angle = index * 0.8;
+                    }
+                    
+                    var newPixelX = group.screenCenter.x + (radius * Math.sin(angle));
+                    var newPixelY = group.screenCenter.y + (radius * Math.cos(angle));
+                    
+                    var newLatLng = map_manager.map.layerPointToLatLng(L.point(newPixelX, newPixelY));
+
+                    setLayerLatLng(geoLayer, newLatLng);
+
+                    var polyline = L.polyline([geoLayer.trueLatLng, newLatLng], {
+                        color: '#666',
+                        weight: 1.2,
+                        dashArray: '4, 4',
+                        interactive: false
+                    });
+                    
+                    section_manager.json_data[geoLayer.parentSectionId].spider_legs.addLayer(polyline);
+                });
+            });
+
+        } else {
+            allActiveMarkers.forEach(function(geoLayer) {
+                if (geoLayer.trueLatLng) {
+                    setLayerLatLng(geoLayer, geoLayer.trueLatLng);
+                }
+            });
+        }
+    }
 }
  
 

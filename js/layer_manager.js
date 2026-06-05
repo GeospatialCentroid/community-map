@@ -423,7 +423,7 @@ class Layer_Manager {
     console.log(layer_options,"layer_options")
     //create a pane for the resource
     console.log(_resource_id,"_resource_id")
-    console.log(resource,"resource")
+    console_log(resource,"resource")
     var pane = this.map.createPane(_resource_id);
     // set the z if not already
     if(typeof(_z)=="undefined"){
@@ -507,11 +507,16 @@ class Layer_Manager {
     }else{
       if (service_method._method=="ajax"){
             var layer_obj = L.layerGroup();
-            console.log("What is up",resource)
+            console.log("SHOW the OVERLAY",resource)
             // see if the data is already loaded in the section manager
-           if(resource?.[0]?.data){// todo - figure out what we need to check the first slot for the data
-                console.log("we have the data already",resource.data)
+           if(resource?.[0]?.data || resource){// 
+            // odd that we have to check in two places   
+            // todo figure out what we need to check the first slot for the data   
+            if(resource?.[0]?.data){
                  this.show_ajax("",layer_obj,_resource_id,resource[0].data)
+                }else{
+                    this.show_ajax("",layer_obj,_resource_id,resource)
+                }
            }else{
                 console.log("we need to load the data",resource)
                 this.load_ajax(url,layer_obj,_resource_id)
@@ -524,7 +529,7 @@ class Layer_Manager {
              return
           }else{
              // only create this layer if it doesn't yet exist
-              layer_obj = L.markerClusterGroup();//L.featureGroup();
+              layer_obj = L.featureGroup();
               layer_obj.item_to_layer_id=[];//store an id associating the item with the layer id
               layer_obj.layer_options=layer_options
               this.show_csv_data(layer_obj,_resource_id,item_ids);
@@ -665,7 +670,6 @@ class Layer_Manager {
         var unique_id=0;
         L["geoJSON"](data,{
             onEachFeature: function(feature, layer){
-                console.log("Feature",feature)
                     markers.addLayer($this.create_geo_feature(feature,_resource_id,layer_obj, layer,url,unique_id++));
             }
         })
@@ -926,7 +930,7 @@ class Layer_Manager {
         // only add the layer once
         layer_obj.addTo($this.map);
     }
-    console_log("show_csv_data",layer_obj,_resource_id,item_ids)
+    console.log("show_csv_data-----------------",layer_obj,_resource_id,item_ids)
   // the following creates a csv file which includes geojson features
   // only rows with features can be mapped
   // each item added should only be done so once and an array will track the visible items
@@ -938,44 +942,62 @@ class Layer_Manager {
   // hiding
   // Unchecking any checkbox will take all the ids associated with it and remove them from the map
 
-    var items_showing=section_manager.json_data[_resource_id.replaceAll('section_id_', '')].items_showing
+     var section_id=_resource_id.replaceAll('section_id_', '')
+    var items_showing=section_manager.json_data[section_id].items_showing
+    if(!section_manager.json_data[section_id].clustered_points){
+        //only create the cluster point object once
+        section_manager.json_data[section_id].clustered_points = 
+        L.markerClusterGroup({
+             disableClusteringAtZoom: 14, 
+        });
+        layer_obj.addLayer(section_manager.json_data[section_id].clustered_points);
+        //start a new array of points
+        section_manager.json_data[section_id].geojson_markers = []
+    }
+    var markers =  section_manager.json_data[section_id].geojson_markers
+
     $this.create_style_class(_resource_id)
     var data = section_manager.get_match(_resource_id)
+
      for (var i=0;i<item_ids.length;i++){
         var item_id=item_ids[i]
-        
         var index =$.inArray( item_id, items_showing)
         if (index==-1){
-            // temp inject feature
-           var item = data.find(obj => obj._id === item_id);
+            //show the item
+             var item = data.find(obj => obj._id === item_id);
             if(item?.feature){
-
-
-                try{
+              try{
 
                  var geo = $this.create_geo_avatar(item.feature,_resource_id,layer_obj, false, false)
-                 layer_obj.addLayer(geo
-                 .bindTooltip(item.feature.features[0].properties[Object.keys(item.feature.features[0].properties)[0]]));
+                 geo.bindTooltip(item.feature.features[0].properties["instructor name"])
+
+                 geo.on('click', function(e) {
+                   L.DomEvent.stopPropagation(e);
+                   // convert the marker id into the item id
+                   var data =layer_obj.item_to_layer_id
+                   var key = Object.keys(data).find(key => data[key] ===e.target._leaflet_id);
+                   // click the item
+                  filter_manager.click_item(0,key)
+                });
+                  markers.push(geo)
                   // rather than force an id - lets associate the item_id, with the internal leaflet id
                  layer_obj.item_to_layer_id[item_id]=layer_obj.getLayerId(geo)
+
                  items_showing.push(item_id)
-                 }catch(error){
-                      console.log(error,"Error trying to create",item.feature)//JSON.stringify(
+               }catch(error){
+                      console.log(error,"Error trying to create",item?.feature)//JSON.stringify(
                  }
              }
 
         }else{
-            try{
-                // it's possible a shape Path errors-out when trying to remove, just try to remove it
-                layer_obj.removeLayer(layer_obj.item_to_layer_id[item_id]);// note: we need to use the internal id number
-            }catch(error){
-
-            }
-
             items_showing.splice(index,1)
+            markers.splice(index,1)
         }
 
      }
+     section_manager.json_data[section_id].clustered_points.clearLayers();
+    section_manager.json_data[section_id].clustered_points.addLayers(markers);
+    console.log("markers",markers)
 
     //layer_obj.addLayer(markers)
     //map_manager.map_zoom_event(layer_obj.getBounds())
@@ -989,22 +1011,14 @@ class Layer_Manager {
   // Inside your create_geo_feature function:
  create_geo_avatar(feature, _resource_id, layer_obj, layer, url, unique_id) {
     var $this = this;
-
-
-    var latlng;
     var coords = feature.features?.[0]?.geometry?.coordinates;
-    console.log(coords[0],"and", coords[1],"coords")
-    latlng = L.latLng(coords[1], coords[0]);
+    var latlng = L.latLng(coords[1], coords[0]);
 
-
-    // 2. Safely grab the avatar picture URL from your feature properties
-    // Replace 'avatar_url' with whatever your database payload uses (e.g., feature.properties.image, feature.properties.photo)
-    console.log(feature.features[0].properties)
     var imageUrl = "images/profile_pic/"+feature.features?.[0].properties["instructor name"]+".png"
         // ? feature.features?.[0].properties.image_url 
         // : 'images/profile_pic/Not Avaliable.png'; // Fallback placeholder image
 
-    // 3. Construct the HTML-based DivIcon
+    // Construct the HTML-based DivIcon
     var avatarIcon = L.divIcon({
         className: 'custom-avatar-marker', // Base class to remove default Leaflet box styles
         html: `<div class="marker-avatar" style="background-image: url('${imageUrl}');" title="${feature.properties?.name || ''}"></div>`,
@@ -1013,16 +1027,9 @@ class Layer_Manager {
         popupAnchor: [0, -20]     // Forces popups to open cleanly right above the circle
     });
 
-    // 4. Create the new marker with the custom icon
     var newMarker = L.marker(latlng, { icon: avatarIcon });
 
-    // 5. Transfer existing popup details or custom click events if the original layer had them
-    if (layer && typeof layer.getPopup === 'function' && layer.getPopup()) {
-        newMarker.bindPopup(layer.getPopup());
-    } else if (feature.properties && feature.properties.popupContent) {
-        newMarker.bindPopup(feature.properties.popupContent);
-    }
-
+    
     // Return the generated marker back to your show_ajax collection loop
     return newMarker;
 }

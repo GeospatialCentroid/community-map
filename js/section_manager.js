@@ -76,6 +76,7 @@ class Section_Manager {
 
 
             }else if ($this.data[i].type=="overlay"){
+                console.log("LOAD the OVERLAY", $this.data[i].data)
                  $this.load_data($this.data[i].data,false,$this.add_overlay,i)
             }
 
@@ -117,15 +118,13 @@ class Section_Manager {
 
     }
     add_overlay(_data,_slot){
-        console.log("add_overlay",_data,_slot)
+        console.log("CALLING add_overlay",_data,_slot)
        section_manager.data[_slot].data=_data
        // var data =$.csv.toObjects(_data.replaceAll('\t', ''))
         console.log(section_manager.json_data)
 
-             // load the building layer
-    console.log("section_manager",section_manager.json_data)
-
-    layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,101)
+       // load the building layer
+        //layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,1001)
 
     }
 
@@ -247,12 +246,13 @@ class Section_Manager {
             //store a sort col for universal access
              all_data[i]._sort_col= all_data[i][title_col]
 
-                if(all_data[i]?.["lat,lng"]){
+                if(all_data[i]?.["lat,lng"].indexOf(",")>-1){
                     //first time to add features
-                    all_data[i].feature = {"type": "FeatureCollection", "features": [ { "type": "Feature","properties": {},"geometry": {"type": "Point","coordinates": [ -4.6472152,25.4446303]} }]}
+                    all_data[i].feature = {"type": "FeatureCollection", "features": [ { "type": "Feature","properties": {},"geometry": {"type": "Point","coordinates": []} }]}
 
                     all_data[i].feature.features[0].geometry.coordinates= all_data[i]["lat,lng"].split(",").map(Number).reverse();
                     // add a profile picture
+                    all_data[i].feature.features[0].properties["instructor name"]=all_data[i]["instructor name"]
                     all_data[i].feature.features[0].properties.image_url="images/profile_pic/" + all_data[i]["instructor_name"]+".png"
 
                     

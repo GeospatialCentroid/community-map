@@ -133,7 +133,10 @@ function after_filters(){
             layer_manager.toggle_layer(layer_manager.layers_list[i].id,i)
         }
     }
-
+    setTimeout(function(){
+          section_manager.slide_position("results")
+    },1000)
+   
 
 }
 

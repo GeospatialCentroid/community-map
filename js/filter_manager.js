@@ -572,7 +572,7 @@ class Filter_Manager {
     show_items(_id,item_ids){
         //toggle the layer but only show the specific item id
         // note: we'll want to pass an array of ids to
-       layer_manager.toggle_layer("section_id_"+_id,"CSV",false,false,100,item_ids)
+      layer_manager.toggle_layer("section_id_"+_id,"CSV",false,false,100,item_ids)
     }
     zoom_item(_id,item_id){
           var data = this.section_manager.get_match('section_id_'+_id)

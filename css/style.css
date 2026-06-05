@@ -1089,3 +1089,15 @@ li a {
     transition: transform 0.1s ease-in-out;
     cursor: pointer;
 }
+
+path.leaflet-markercluster-spider-leg {
+    /* The first number is dash length, second is the gap */
+    stroke-dasharray: 5, 5 !important; 
+    
+    /* Optional: customize thickness and color */
+    stroke-width: 1.5px !important; 
+    stroke: #666 !important; 
+    
+    /* Optional: add a slight animation to the dashed lines */
+    /* animation: dash 10s linear infinite; */
+}
