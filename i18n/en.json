@@ -181,7 +181,12 @@
 		"TIP": "Choose a Basemap",
 		"BACKGROUND": "Background",
 		"BASEMAP_OPTIONS": {
-
+			"CartoDB_PositronNoLabels":{
+				"title": "CartoDB_PositronNoLabels",
+				"image": "images/topo.png",
+				"attribution":"&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>",
+				"url": "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+			},
 			"Topographic":{
 				"title": "Topographic",
 				"image": "images/topo.png",

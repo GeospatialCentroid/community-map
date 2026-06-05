@@ -124,7 +124,10 @@ class Section_Manager {
         console.log(section_manager.json_data)
 
        // load the building layer
-        layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,1001)
+       setTimeout(() => {
+        layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,50)
+
+       } , "1500");
 
     }
 
@@ -132,11 +135,13 @@ class Section_Manager {
         // when all the data for a section is loaded, join it together
          var $this = section_manager
          //store the data in the slot
+         console.log("slot[0]",slot[0])
           var section = $this.json_data[slot[0]]
           try{
             section.data[slot[1]].data=data
           }catch(err){
                 console.log("error setting section data",err)
+                console.log("section.data",section.data)
                 //
             }
           //check if all the data is available in the specific section

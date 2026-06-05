@@ -507,7 +507,7 @@ class Layer_Manager {
     }else{
       if (service_method._method=="ajax"){
             var layer_obj = L.layerGroup();
-            console.log("SHOW the OVERLAY",resource)
+            console.log("SHOW the OVERLAY",resource,_resource_id)
             // see if the data is already loaded in the section manager
            if(resource?.[0]?.data || resource){// 
             // odd that we have to check in two places   
@@ -670,7 +670,10 @@ class Layer_Manager {
         var unique_id=0;
         L["geoJSON"](data,{
             onEachFeature: function(feature, layer){
-                    markers.addLayer($this.create_geo_feature(feature,_resource_id,layer_obj, layer,url,unique_id++));
+                var geo = $this.create_geo_feature(feature,_resource_id,layer_obj, layer,url,unique_id++)
+                    markers.addLayer(geo);
+                    console.warn("layer",layer)
+                    geo.bindTooltip(layer.feature.properties["NAME_LC"],{sticky:true,direction:"top"})
             }
         })
         layer_obj.addLayer(markers)
@@ -697,7 +700,12 @@ class Layer_Manager {
   create_geo_feature(feature,_resource_id,layer_obj, layer,url,unique_id){
     var $this = this
 
-    var style = {}
+    var style = {
+                weight: 1,          // <-- Change this number (e.g., 1 or 1.5) to make the outline thinner
+                color: "#3388ff",   // The color of the outline
+                opacity: 0.6,       // Opacity of the outline
+                fillOpacity: 0.2    // Opacity of the inner shape fill
+            };
 
     if(layer_obj.layer_options){
         style= jQuery.extend(true, {}, layer_obj.layer_options);
@@ -930,7 +938,6 @@ class Layer_Manager {
         // only add the layer once
         layer_obj.addTo($this.map);
     }
-    console.log("show_csv_data-----------------",layer_obj,_resource_id,item_ids)
   // the following creates a csv file which includes geojson features
   // only rows with features can be mapped
   // each item added should only be done so once and an array will track the visible items
@@ -995,15 +1002,9 @@ class Layer_Manager {
         }
 
      }
-     section_manager.json_data[section_id].clustered_points.clearLayers();
+    section_manager.json_data[section_id].clustered_points.clearLayers();
     section_manager.json_data[section_id].clustered_points.addLayers(markers);
-    console.log("markers",markers)
 
-    //layer_obj.addLayer(markers)
-    //map_manager.map_zoom_event(layer_obj.getBounds())
-//    if(items_showing.length>0){
-//        $this.map.fitBounds(layer_obj.getBounds());
-//    }
     // associate data for access during map click selection
     layer_obj.data = data
 
