@@ -124,7 +124,7 @@ class Section_Manager {
         console.log(section_manager.json_data)
 
        // load the building layer
-        //layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,1001)
+        layer_manager.toggle_layer("section_id_"+1,"GeoJSON",JSON.parse(section_manager.json_data[1].drawing_info.replaceAll('\n', '')),false,1001)
 
     }
 
