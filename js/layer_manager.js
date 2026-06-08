@@ -957,7 +957,8 @@ class Layer_Manager {
         //only create the cluster point object once
         section_manager.json_data[section_id].clustered_points = 
         L.markerClusterGroup({
-             disableClusteringAtZoom: 14, 
+             disableClusteringAtZoom: 17, 
+                maxClusterRadius: 30,
         });
         layer_obj.addLayer(section_manager.json_data[section_id].clustered_points);
         //start a new array of points

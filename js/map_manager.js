@@ -845,8 +845,8 @@ class Map_Manager {
             }
             return fallback;
         }
-
-        if (currentZoom >= 14) {
+        console.log("the current zoom level is ",currentZoom)
+        if (currentZoom >= 17) {
             var globalVisualGroups = []; 
 
             // Adjust proximity threshold depending on zoom depth
