@@ -672,7 +672,7 @@ class Layer_Manager {
             onEachFeature: function(feature, layer){
                 var geo = $this.create_geo_feature(feature,_resource_id,layer_obj, layer,url,unique_id++)
                     markers.addLayer(geo);
-                    console.warn("layer",layer)
+                    //console.warn("layer",layer)
                     geo.bindTooltip(layer.feature.properties["NAME_LC"],{sticky:true,direction:"top"})
             }
         })

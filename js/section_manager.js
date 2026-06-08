@@ -316,9 +316,12 @@ class Section_Manager {
         var temp_json=[]
          for (var j=0;j<all_data.length;j++){
             const row = all_data[j];
-            // Check if any include_col field is non-empty
-            const hasValue = include_cols.some(col => row[col] && row[col] !== '');
-            if (hasValue) {
+            // // Check if any include_col field is non-empty
+            // const hasValue = include_cols.some(col => row[col] && row[col] !== '');
+            // if (hasValue) {
+            //     temp_json.push(row);
+            // }
+            if (row[include_cols[0]]=="Y") {
                 temp_json.push(row);
             }
         }
