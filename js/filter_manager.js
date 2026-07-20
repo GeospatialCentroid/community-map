@@ -65,7 +65,6 @@ class Filter_Manager {
             bounds = L.latLngBounds(sw, ne);
             map_manager.map_zoom_event(bounds)
 
-            map_manager.show_copy_link(b[2],b[0],b[3],b[1])
 
   }
     update_results_info(num){

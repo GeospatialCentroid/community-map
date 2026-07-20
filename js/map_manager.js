@@ -122,7 +122,7 @@ class Map_Manager {
     this.map.on('draw:edited', function (e) {
       //get bounds str (West, East, North, South)
       var b = drawnItems.getBounds()
-     $this.show_copy_link(b.getWest(),b.getSouth(),b.getEast(),b.getNorth())
+     
 
     });
   this.map.on('zoomend', function() {
@@ -130,13 +130,7 @@ class Map_Manager {
     });
   }
 
-  show_copy_link(w,s,e,n){
-     var str =w+","+s+","+e+","+n;
-     var copy_link =" <a href='javascript:navigator.clipboard.writeText(\""+str+"\")' >copy</a>"
-     this.map.attributionControl.setPrefix(str+copy_link);
 
-
-  }
   init() {
     // separate call to add the interactivity to the map so it can call out to the filter_manager
 
