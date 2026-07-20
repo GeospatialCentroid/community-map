@@ -680,10 +680,6 @@ class Layer_Manager {
         layer_obj.data = data
         layer_obj.addTo($this.map);
         //
-        console_log(layer_obj)
-
-        $this.show_bounds(markers.getBounds())
-
         $this.layer_load_complete({layer_id:_resource_id})
   }
   create_style_class(_resource_id){
@@ -732,9 +728,7 @@ class Layer_Manager {
      geo.on('click', function(e) { $this.layer_click(e,_resource_id) });
      return geo
   }
-  show_bounds(b){
-    map_manager.show_copy_link(b.getWest(),b.getSouth(),b.getEast(),b.getNorth())
-  }
+
   get_attribution(resource){
     return "<a href='javascript:void(0);' onclick=\"filter_manager.show_details('"+resource["id"]+"')\" >"+resource["dct_title_s"]+"</a>"
   }
@@ -1128,7 +1122,7 @@ class Layer_Manager {
                 }
             }
             var title = this.layers[i].resource_obj[filter_manager["title_col"]];
-            title = title.clip_text(30)
+            //title = title.clip_text(30)
             if ($.inArray(this.layers[i].type,this.table_types)>-1 || !is_table){
                 // omit the selected value if flag set
                 if(!skip){

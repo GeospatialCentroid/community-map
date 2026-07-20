@@ -390,7 +390,7 @@ class Table_Manager {
         var csv_array=[]
         html+="<tr onclick='table_manager.highlight_feature(this,\""+id+"\")' ondblclick='table_manager.zoom_feature(this,\""+id+"\")'>"
         for (var p in _cols){
-            if(p!="_id"){
+            if(p!="_id" && p!="image_url" ){
                   var text = ""
                   if(_rows[i]?.properties){
                     text=_rows[i].properties[p]

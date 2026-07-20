@@ -416,25 +416,37 @@ class Map_Manager {
         var props= this.features[this.result_num].properties
         var html=''
 
-         for (var p in props){
-            if (p !='_id' && p !='color'){
-                var val = String(props[p]).hyper_text()
-                //if we have an array add line breaks between values
-                if($.isArray(props[p])){
-                     val =""
+      for (var p in props){
+            if (p != '_id' && p != 'color'&& p != 'image_url'){
+                var val = "";
+                if ($.isArray(props[p])) {
                     for (var v in props[p]){
-                        if(props[p][v]!=""){
-                            val += String(props[p][v]).hyper_text()+"<br/>"
+                        if (props[p][v] != ""){
+                            let item = String(props[p][v]);
+
+                            if (p === "image_url") {
+                                val += item.image_text() + "<br/>";
+                            } else {
+                                val += item.hyper_text() + "<br/>";
+                            }
                         }
+                    }
+                } else {
+                    let item = String(props[p]);
+
+                    if (p === "image_url") {
+                        val = "$$$$$"+item.image_text();
+                        console.log(item)
+                    } else {
+                        val = item.hyper_text();
                     }
                 }
 
-                if(val!=""){
-                     html+="<tr><td  class='td_top'>"+p+"</td><td class='td_bold'>"+val+"</td></tr>"
+                if (val != ""){
+                    html += "<tr><td class='td_top'>" + p + "</td><td class='td_bold'>" + val + "</td></tr>";
                 }
-
             }
-         }
+        }
         $("#props_table").html(html)
         // update the text
         $("#popup_result_num").html(this.result_num+1)
